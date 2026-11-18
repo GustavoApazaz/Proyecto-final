@@ -12,6 +12,53 @@ function mostrarMensaje(elemento, texto, tipo) {
 }
 
 // ---------------------------------------------------------
+// GESTIÓN DE SESIÓN (LOGIN / LOGOUT PERSISTENTE)
+// ---------------------------------------------------------
+function verificarSesion() {
+  const usuarioGuardado = localStorage.getItem('simtele_sesion_usuario');
+  const vistaLogin = document.getElementById('vista-login');
+  const vistaSistema = document.getElementById('vista-sistema');
+  const spanUsuario = document.getElementById('nombre-usuario-activo');
+
+  if (usuarioGuardado) {
+    spanUsuario.textContent = usuarioGuardado;
+    vistaLogin.classList.add('oculto');
+    vistaSistema.classList.remove('oculto');
+  } else {
+    vistaLogin.classList.remove('oculto');
+    vistaSistema.classList.add('oculto');
+  }
+}
+
+function iniciarSesion(evento) {
+  evento.preventDefault();
+
+  const usuarioInput = document.getElementById('login-usuario').value.trim();
+  const claveInput = document.getElementById('login-clave').value.trim();
+  const errorLogin = document.getElementById('error-login');
+
+  if (usuarioInput.length < 3) {
+    mostrarMensaje(errorLogin, 'Error: Ingrese un nombre de usuario válido (mínimo 3 caracteres).', 'error');
+    return;
+  }
+
+  if (claveInput.length < 4) {
+    mostrarMensaje(errorLogin, 'Error: La contraseña debe tener al menos 4 caracteres.', 'error');
+    return;
+  }
+
+  errorLogin.classList.remove('visible');
+  localStorage.setItem('simtele_sesion_usuario', usuarioInput);
+  evento.target.reset();
+  verificarSesion();
+}
+
+function cerrarSesion() {
+  localStorage.removeItem('simtele_sesion_usuario');
+  verificarSesion();
+}
+
+// ---------------------------------------------------------
 // MÓDULO 1: DETENCIÓN DE EMERGENCIA
 // ---------------------------------------------------------
 function calcularDetencionEmergencia(evento) {
@@ -260,6 +307,14 @@ function registrarSensor(evento) {
 // INICIALIZACIÓN DE EVENTOS (addEventListener)
 // ---------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
+  // Verificar si ya existe una sesión activa al cargar la página
+  verificarSesion();
+
+  // Eventos de Inicio y Cierre de Sesión
+  document.getElementById('form-login').addEventListener('submit', iniciarSesion);
+  document.getElementById('btn-cerrar-sesion').addEventListener('click', cerrarSesion);
+
+  // Eventos de los 4 módulos originales
   document.getElementById('form-detencion').addEventListener('submit', calcularDetencionEmergencia);
   document.getElementById('form-mantenimiento').addEventListener('submit', agregarRegistroMantenimiento);
   document.getElementById('form-viento').addEventListener('submit', analizarViento);
